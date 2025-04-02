@@ -37,7 +37,7 @@ BME280 myBME280;
 int ensStatus;
 
 void setup() {
-  Wire.begin(26, 18);
+  Wire.begin(21, 22);
 
   Serial.begin(115200);
 
