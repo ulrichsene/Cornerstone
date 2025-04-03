@@ -46,7 +46,7 @@ void setup()
 
 void loop()
 {
-   // Hardware has alerted us to an event, now we read the interrupt register
+  // Hardware has alerted us to an event, now we read the interrupt register
   if(digitalRead(lightningInt) == HIGH){
     intVal = lightning.readInterruptReg();
     if(intVal == NOISE_INT){

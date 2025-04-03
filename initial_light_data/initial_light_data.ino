@@ -60,12 +60,12 @@ void setup() {
 }
 
 void loop() {
-  bool valid;
+  bool valid_light;
   uint16_t visible_plus_ir, infrared;
 
   if (ltr.newDataAvailable()) {
-    valid = ltr.readBothChannels(visible_plus_ir, infrared);
-    if (valid) {
+    valid_light = ltr.readBothChannels(visible_plus_ir, infrared);
+    if (valid_light) {
       Serial.print("CH0 Visible + IR: ");
       Serial.print(visible_plus_ir);
       Serial.print("\t\tCH1 Infrared: ");
