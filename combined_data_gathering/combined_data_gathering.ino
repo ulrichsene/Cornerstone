@@ -5,12 +5,14 @@ Sparkfun Environmental Combo (ENS160 / BME280)
 Adafruit BME680
 Adafruit LTR-303
 Sparkfun AS3935
+
+NOTE: When uploading to board, select "Node32s" as the device
 */
 
 #include <SPI.h>
 #include <Wire.h>
-#include "SparkFun_ENS160.h"  // Click here to get the library: http://librarymanager/All#SparkFun_ENS160
-#include "SparkFunBME280.h"   // Click here to get the library: http://librarymanager/All#SparkFun_BME280
+#include "SparkFun_ENS160.h"
+#include "SparkFunBME280.h"
 #include "Adafruit_BME680.h"
 #include "Adafruit_LTR329_LTR303.h"
 #include "SparkFun_AS3935.h"
