@@ -3,3 +3,5 @@ mosquitto/certs/
 mosquitto/pwfile
 
 .env
+
+wifi_creds.h
