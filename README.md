@@ -1,7 +1,10 @@
 # Cornerstone
 IOT Weather Station
-
-## Setting Up
+## SSH Server
+```sh
+    ssh <username>@34.30.198.245
+```
+## Setting Up Mosquitto
 ### Install Mosquitto
 On Ubuntu/Debian
 ```sh
