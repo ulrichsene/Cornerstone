@@ -1,2 +1,7 @@
+# MQTT broker files
+mosquitto/certs/
+mosquitto/pwfile
+
+.env
 
 wifi_creds.h
