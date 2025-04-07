@@ -10,12 +10,14 @@ NOTE: When uploading to board, select "Node32s" as the device
 */
 
 #include <SPI.h>
+//#include <WiFi.h>
 #include <Wire.h>
 #include "SparkFun_ENS160.h"
 #include "SparkFunBME280.h"
 #include "Adafruit_BME680.h"
 #include "Adafruit_LTR329_LTR303.h"
 #include "SparkFun_AS3935.h"
+//#include "wifi_creds.h"
 
 #define SEALEVELPRESSURE_HPA (1013.25) // for BME680
 // for lightning sensor
@@ -34,15 +36,15 @@ SparkFun_AS3935 lightning;
 
 int ensStatus; // for env combo sensor
 // Interrupt pin for lightning detection 
-const int lightningInt = 4; 
-int spiCS = 10; //SPI chip select pin
+const int lightningInt = 17; 
+int spiCS = 2; //SPI chip select pin
 
 // This variable holds the number representing the lightning or non-lightning
 // event issued by the lightning detector. 
 int intVal = 0;
 int noise = 2; // Value between 1-7 
 int disturber = 2; // Value between 1-10
- 
+
 void setup() {
   
   Serial.begin(115200);
@@ -320,5 +322,5 @@ void loop() {
   Serial.println();
  
   // Delay for 1 second before the next reading
-  delay(2000);
+  delay(1000);
 }

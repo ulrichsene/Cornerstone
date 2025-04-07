@@ -11,8 +11,8 @@
 SparkFun_AS3935 lightning;
 
 // Interrupt pin for lightning detection 
-const int lightningInt = 4; 
-int spiCS = 10; //SPI chip select pin
+const int lightningInt = 17; 
+int spiCS = 2; //SPI chip select pin
 
 // This variable holds the number representing the lightning or non-lightning
 // event issued by the lightning detector. 
@@ -53,7 +53,7 @@ void loop()
       Serial.println("Noise."); 
       // Too much noise? Uncomment the code below, a higher number means better
       // noise rejection.
-      //lightning.setNoiseLevel(noise); 
+      lightning.setNoiseLevel(noise); 
     }
     else if(intVal == DISTURBER_INT){
       Serial.println("Disturber."); 
