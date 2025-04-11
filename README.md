@@ -4,6 +4,20 @@ IOT Weather Station
 ```sh
     ssh <username>@34.30.198.245
 ```
+
+## Running Dummy Data
+In first terminal run:
+```sh
+    mosquitto
+```
+In second terminal run:
+```sh
+    python3 dummy-data.py
+```
+To get data via mqtt in third terminal:
+```sh
+    mosquitto_sub -h localhost -t <topic> -v
+```
 ## Setting Up Mosquitto
 ### Install Mosquitto
 On Ubuntu/Debian
