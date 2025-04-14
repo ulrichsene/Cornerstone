@@ -7,17 +7,20 @@ Adafruit LTR-303
 Sparkfun AS3935
 
 NOTE: When uploading to board, select "Node32s" as the device
+also create a "wifi_creds.h" file to put the wifi ssid and password in
 */
 
+#include <ArduinoJson.h>
+#include <ArduinoMqttClient.h>
 #include <SPI.h>
-//#include <WiFi.h>
+#include <WiFi.h>
 #include <Wire.h>
 #include "SparkFun_ENS160.h"
 #include "SparkFunBME280.h"
 #include "Adafruit_BME680.h"
 #include "Adafruit_LTR329_LTR303.h"
 #include "SparkFun_AS3935.h"
-//#include "wifi_creds.h"
+#include "wifi_creds.h"
 
 #define SEALEVELPRESSURE_HPA (1013.25) // for BME680
 // for lightning sensor
@@ -27,18 +30,20 @@ NOTE: When uploading to board, select "Node32s" as the device
 #define DISTURBER_INT 0x04
 #define NOISE_INT 0x01
 
-// define all sensor objects
+// define all sensor and mqtt related objects
 SparkFun_ENS160 myENS;
 BME280 myBME280;
 Adafruit_BME680 adaBME; // Create a BME680 sensor object for I2C
 Adafruit_LTR329 ltr = Adafruit_LTR329();
 SparkFun_AS3935 lightning;
+WiFiClient wifiClient;
+MqttClient mqttClient(wifiClient);
 
 int ensStatus; // for env combo sensor
+
 // Interrupt pin for lightning detection 
 const int lightningInt = 17; 
 int spiCS = 2; //SPI chip select pin
-
 // This variable holds the number representing the lightning or non-lightning
 // event issued by the lightning detector. 
 int intVal = 0;
@@ -50,6 +55,13 @@ unsigned long last_combo_sample = 0;
 unsigned long last_bme_sample = 0;
 unsigned long last_light_sample = 0;
 unsigned long last_lightning_sample = 0;
+
+// wifi credentials from wifi_creds.h file
+char ssid[] = WIFI_SSID;
+char pass[] = WIFI_PASS;
+
+const char broker[] = "test.mosquitto.org";
+int        port     = 1883;
 
 unsigned long handleComboData(unsigned long last_sample) {
   if (last_sample + 5000 < millis()) { // change to be once every 15 seconds
@@ -85,6 +97,19 @@ unsigned long handleComboData(unsigned long last_sample) {
       //Serial.println(" degC");
       Serial.print(myBME280.readTempF(), 2);
       Serial.println(" degF");
+      // mqtt code:
+      StaticJsonDocument<256> doc;
+      doc["type"] = "combo";
+      StaticJsonDocument<256> data_doc;
+      data_doc["aqi"] = myENS.getAQI(); // units: 1-5
+      data_doc["tvoc"] = myENS.getTVOC(); // units: ppb
+      data_doc["eco2"] = myENS.getECO2(); // units: ppm
+      doc["data"] = data_doc;
+      char data_bytes[128];
+      serializeJson(doc, data_bytes);
+      mqttClient.beginMessage("combo");
+      mqttClient.print(data_bytes);
+      mqttClient.endMessage();
     }
     else {
       Serial.println("Failed to read from env combo sensor");
@@ -130,6 +155,22 @@ unsigned long handleBMEData(unsigned long last_sample) {
       Serial.print("Approx. Altitude = ");
       Serial.print(adaBME.readAltitude(SEALEVELPRESSURE_HPA));
       Serial.println(" m");
+      // mqtt code:
+      StaticJsonDocument<256> doc;
+      doc["type"] = "bme";
+      StaticJsonDocument<256> data_doc;
+      data_doc["temp_c"] = adaBME.temperature; // units: degrees C
+      data_doc["pressure"] = adaBME.pressure / 100.0; // units: hPa
+      data_doc["humidity"] = adaBME.humidity; // units: %
+      data_doc["dew_point_c"] = dewPoint; // units: degrees C
+      data_doc["gas"] = adaBME.gas_resistance / 1000.0; // units: KOhms
+      data_doc["altitude"] = adaBME.readAltitude(SEALEVELPRESSURE_HPA); // units: m
+      doc["data"] = data_doc;
+      char data_bytes[128];
+      serializeJson(doc, data_bytes);
+      mqttClient.beginMessage("bme");
+      mqttClient.print(data_bytes);
+      mqttClient.endMessage();
     }
     else {
       Serial.println("Failed to read from Adafruit BME680");
@@ -152,6 +193,18 @@ unsigned long handleLightData(unsigned long last_sample) {
         Serial.print(visible_plus_ir);
         Serial.print("\t\tCH1 Infrared: ");
         Serial.println(infrared);
+        // mqtt code:
+        StaticJsonDocument<256> doc;
+        doc["type"] = "light";
+        StaticJsonDocument<256> data_doc;
+        data_doc["visible_plus_ir"] = visible_plus_ir;
+        data_doc["ir"] = infrared;
+        doc["data"] = data_doc;
+        char data_bytes[128];
+        serializeJson(doc, data_bytes);
+        mqttClient.beginMessage("light");
+        mqttClient.print(data_bytes);
+        mqttClient.endMessage();
       }
     }
     // Print a blank line for better readability
@@ -189,6 +242,17 @@ unsigned long handleLightningData(unsigned long last_sample) {
         Serial.print(distance); 
         Serial.println("km away!"); 
         Serial.println();
+        // mqtt code:
+        StaticJsonDocument<256> doc;
+        doc["type"] = "lightning";
+        StaticJsonDocument<256> data_doc;
+        data_doc["distance"] = distance;
+        doc["data"] = data_doc;
+        char data_bytes[128];
+        serializeJson(doc, data_bytes);
+        mqttClient.beginMessage("lightning");
+        mqttClient.print(data_bytes);
+        mqttClient.endMessage();
       }
     }
     last_sample += 200;
@@ -197,22 +261,7 @@ unsigned long handleLightningData(unsigned long last_sample) {
 }
 
 void setup() {
-  
   Serial.begin(115200);
-
-  pinMode(LED_BUILTIN, OUTPUT);
-  bool light_status = false;
-  while (!Serial){
-    if( light_status ) {
-          digitalWrite(LED_BUILTIN, LOW);
-    } else {
-          digitalWrite(LED_BUILTIN, HIGH);
-    }
-      light_status = !light_status;
-    delay(500);
-  }
-
-  digitalWrite(LED_BUILTIN, HIGH);
   delay(2000);
   
   Wire.begin(21, 22);
@@ -336,6 +385,37 @@ void setup() {
   // the cost of less sensitivity, if you plan on using this outdoors 
   // uncomment the following line:
   //lightning.setIndoorOutdoor(OUTDOOR); 
+
+
+  /////////////////////////
+  // network connections //
+  Serial.print("Attempting to connect to WPA SSID: ");
+  Serial.println(ssid);
+  
+  WiFi.begin(ssid, pass); // Connect to the Wi-Fi network
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("Connected to the network!");
+  Serial.println();
+
+  Serial.print("Attempting to connect to the MQTT broker: ");
+  Serial.println(broker);
+
+  if (!mqttClient.connect(broker, port)) {
+    Serial.print("MQTT connection failed! Error code = ");
+    Serial.println(mqttClient.connectError());
+
+    while (1);
+  }
+
+  Serial.println("Connected to the MQTT broker!");
+  Serial.println();
+
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
 
   Serial.println("done with setup");
   // delay to allow combo sensor to actually finish getting ready
