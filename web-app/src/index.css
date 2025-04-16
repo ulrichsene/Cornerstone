@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.gradient-bg {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+.card-gradient {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.sensor-value {
+  @apply text-2xl font-bold text-gray-800;
+}
+
+.sensor-label {
+  @apply text-sm font-medium text-gray-500;
+}

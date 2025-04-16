@@ -101,7 +101,7 @@ try:
         client.publish(topics["summary"], json.dumps(summary_data))
 
         # Print to terminal
-        # print("📡 Published dummy weather data:", json.dumps(summary_data, indent=2))
+        print("📡 Published dummy weather data:", json.dumps(summary_data, indent=2))
 
         # Wait 5 seconds before next publish
         time.sleep(5)
