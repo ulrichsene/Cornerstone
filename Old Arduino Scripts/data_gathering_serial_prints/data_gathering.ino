@@ -67,6 +67,36 @@ unsigned long handleComboData(unsigned long last_sample) {
   if (last_sample + 5000 < millis()) { // change to be once every 15 seconds
     // Check if the combo sensor reading was successful
     if (myENS.checkDataStatus()) {
+      // Serial.print("Air Quality Index (1-5) : ");
+      // Serial.println(myENS.getAQI());
+
+      // Serial.print("Total Volatile Organic Compounds: ");
+      // Serial.print(myENS.getTVOC());
+      // Serial.println("ppb");
+
+      // Serial.print("CO2 concentration: ");
+      // Serial.print(myENS.getECO2());
+      // Serial.println("ppm");
+
+      // Serial.print("Humidity: ");
+      // Serial.print(myBME280.readFloatHumidity(), 0);
+      // Serial.println("RH%");
+
+      // Serial.print("Pressure: ");
+      // Serial.print(myBME280.readFloatPressure(), 0);
+      // Serial.println("Pa");
+
+      // Serial.print("Alt: ");
+      // //Serial.print(myBME280.readFloatAltitudeMeters(), 1);
+      // //Serial.println("meters");
+      // Serial.print(myBME280.readFloatAltitudeFeet(), 1);
+      // Serial.println("feet");
+
+      // Serial.print("Temp: ");
+      // //Serial.print(myBME280.readTempC(), 2);
+      // //Serial.println(" degC");
+      // Serial.print(myBME280.readTempF(), 2);
+      // Serial.println(" degF");
       // mqtt code:
       StaticJsonDocument<256> doc;
       doc["type"] = "combo";
@@ -75,15 +105,17 @@ unsigned long handleComboData(unsigned long last_sample) {
       data_doc["tvoc"] = myENS.getTVOC(); // units: ppb
       data_doc["eco2"] = myENS.getECO2(); // units: ppm
       doc["data"] = data_doc;
-      char data_bytes[256];
+      char data_bytes[128];
       serializeJson(doc, data_bytes);
-      mqttClient.beginMessage("ajckl_combo");
+      mqttClient.beginMessage("combo");
       mqttClient.print(data_bytes);
       mqttClient.endMessage();
     }
     else {
       Serial.println("Failed to read from env combo sensor");
     }
+    // Print a blank line for better readability
+    Serial.println();
     last_sample += 5000;
   }
   return last_sample;
@@ -93,8 +125,36 @@ unsigned long handleBMEData(unsigned long last_sample) {
   if (last_sample + 5000 < millis()) { // change to be once every 15 seconds
     // Check if the BME680 sensor reading was successful
     if (adaBME.performReading()) {
+      // Display temperature in degrees Celsius
+      // Serial.print("Temperature = ");
+      // Serial.print(adaBME.temperature);
+      // Serial.println(" °C");
+    
+      // // Display pressure in hPa (hectopascals)
+      // Serial.print("Pressure = ");
+      // Serial.print(adaBME.pressure / 100.0);
+      // Serial.println(" hPa");
+    
+      // // Display humidity in percentage
+      // Serial.print("Humidity = ");
+      // Serial.print(adaBME.humidity);
+      // Serial.println(" %");
+    
       // // Calculate Dew Point
       float dewPoint = adaBME.temperature - ((100 - adaBME.humidity) / 5);
+      // Serial.print("Dew Point = ");
+      // Serial.print(dewPoint);
+      // Serial.println(" °C");
+    
+      // // Display gas resistance in KOhms
+      // Serial.print("Gas = ");
+      // Serial.print(adaBME.gas_resistance / 1000.0);
+      // Serial.println(" KOhms");
+    
+      // // Calculate and display approximate altitude
+      // Serial.print("Approx. Altitude = ");
+      // Serial.print(adaBME.readAltitude(SEALEVELPRESSURE_HPA));
+      // Serial.println(" m");
       // mqtt code:
       StaticJsonDocument<256> doc;
       doc["type"] = "bme";
@@ -106,15 +166,17 @@ unsigned long handleBMEData(unsigned long last_sample) {
       data_doc["gas"] = adaBME.gas_resistance / 1000.0; // units: KOhms
       data_doc["altitude"] = adaBME.readAltitude(SEALEVELPRESSURE_HPA); // units: m
       doc["data"] = data_doc;
-      char data_bytes[256];
+      char data_bytes[128];
       serializeJson(doc, data_bytes);
-      mqttClient.beginMessage("ajckl_bme");
+      mqttClient.beginMessage("bme");
       mqttClient.print(data_bytes);
       mqttClient.endMessage();
     }
     else {
       Serial.println("Failed to read from Adafruit BME680");
     }
+    // Print a blank line for better readability
+    Serial.println();
     last_sample += 5000;
   }
   return last_sample;
@@ -127,6 +189,10 @@ unsigned long handleLightData(unsigned long last_sample) {
     if (ltr.newDataAvailable()) {
       valid_light = ltr.readBothChannels(visible_plus_ir, infrared);
       if (valid_light) {
+        // Serial.print("CH0 Visible + IR: ");
+        // Serial.print(visible_plus_ir);
+        // Serial.print("\t\tCH1 Infrared: ");
+        // Serial.println(infrared);
         // mqtt code:
         StaticJsonDocument<256> doc;
         doc["type"] = "light";
@@ -136,11 +202,13 @@ unsigned long handleLightData(unsigned long last_sample) {
         doc["data"] = data_doc;
         char data_bytes[128];
         serializeJson(doc, data_bytes);
-        mqttClient.beginMessage("ajckl_light");
+        mqttClient.beginMessage("light");
         mqttClient.print(data_bytes);
         mqttClient.endMessage();
       }
     }
+    // Print a blank line for better readability
+    Serial.println();
     last_sample += 1000;
   }
   return last_sample;
@@ -152,19 +220,28 @@ unsigned long handleLightningData(unsigned long last_sample) {
     if(digitalRead(lightningInt) == HIGH){
       intVal = lightning.readInterruptReg();
       if(intVal == NOISE_INT){
+        // Serial.println("Noise."); 
+        // Serial.println();
         // Too much noise? Uncomment the code below, a higher number means better
         // noise rejection.
         //lightning.setNoiseLevel(noise); 
       }
       else if(intVal == DISTURBER_INT){
+        // Serial.println("Disturber."); 
+        // Serial.println();
         // Too many disturbers? Uncomment the code below, a higher number means better
         // disturber rejection.
         //lightning.watchdogThreshold(disturber);  
       }
       else if(intVal == LIGHTNING_INT){
+        // Serial.println("Lightning Strike Detected!"); 
         // Lightning! Now how far away is it? Distance estimation takes into
         // account any previously seen events in the last 15 seconds. 
         byte distance = lightning.distanceToStorm(); 
+        // Serial.print("Approximately: "); 
+        // Serial.print(distance); 
+        // Serial.println("km away!"); 
+        // Serial.println();
         // mqtt code:
         StaticJsonDocument<256> doc;
         doc["type"] = "lightning";
@@ -173,7 +250,7 @@ unsigned long handleLightningData(unsigned long last_sample) {
         doc["data"] = data_doc;
         char data_bytes[128];
         serializeJson(doc, data_bytes);
-        mqttClient.beginMessage("ajcklightning");
+        mqttClient.beginMessage("lightning");
         mqttClient.print(data_bytes);
         mqttClient.endMessage();
       }
@@ -184,7 +261,7 @@ unsigned long handleLightningData(unsigned long last_sample) {
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(2000);
   
   Wire.begin(21, 22);
