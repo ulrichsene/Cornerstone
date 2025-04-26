@@ -1,0 +1,8 @@
+[Unit]
+Description=Bridge for weather station to send data from mqtt to influxDB.
+
+[Service]
+ExecStart=/user/bin/env python3 /home/eulrichsen/weatherStation/mqttInfluxdb.py
+
+[Install]
+WantedBy=multi-user.target

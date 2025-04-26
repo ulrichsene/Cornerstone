@@ -1,0 +1,8 @@
+[Unit]
+Description=Script for weather station to generate html for the website.
+
+[Service]
+ExecStart=/user/bin/env python3 /home/eulrichsen/weatherStation/htmlScript.py
+
+[Install]
+WantedBy=multi-user.target
