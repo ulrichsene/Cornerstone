@@ -26,7 +26,7 @@ void setup()
   // When lightning is detected the interrupt pin goes HIGH.
   pinMode(lightningInt, INPUT); 
 
-  Serial.begin(115200); 
+  Serial.begin(9600); 
   Serial.println("AS3935 Franklin Lightning Detector"); 
 
   SPI.begin(); 

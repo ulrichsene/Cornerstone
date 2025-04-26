@@ -60,56 +60,56 @@ unsigned long last_lightning_sample = 0;
 char ssid[] = WIFI_SSID;
 char pass[] = WIFI_PASS;
 
-const char broker[] = "test.mosquitto.org";
-int port = 1883;
+// const char broker[] = "test.mosquitto.org";
+// int port = 1883;
 
 unsigned long handleComboData(unsigned long last_sample) {
   if (last_sample + 5000 < millis()) { // change to be once every 15 seconds
     // Check if the combo sensor reading was successful
     if (myENS.checkDataStatus()) {
-      // Serial.print("Air Quality Index (1-5) : ");
-      // Serial.println(myENS.getAQI());
+      Serial.print("Air Quality Index (1-5) : ");
+      Serial.println(myENS.getAQI());
 
-      // Serial.print("Total Volatile Organic Compounds: ");
-      // Serial.print(myENS.getTVOC());
-      // Serial.println("ppb");
+      Serial.print("Total Volatile Organic Compounds: ");
+      Serial.print(myENS.getTVOC());
+      Serial.println("ppb");
 
-      // Serial.print("CO2 concentration: ");
-      // Serial.print(myENS.getECO2());
-      // Serial.println("ppm");
+      Serial.print("CO2 concentration: ");
+      Serial.print(myENS.getECO2());
+      Serial.println("ppm");
 
-      // Serial.print("Humidity: ");
-      // Serial.print(myBME280.readFloatHumidity(), 0);
-      // Serial.println("RH%");
+      Serial.print("Humidity: ");
+      Serial.print(myBME280.readFloatHumidity(), 0);
+      Serial.println("RH%");
 
-      // Serial.print("Pressure: ");
-      // Serial.print(myBME280.readFloatPressure(), 0);
-      // Serial.println("Pa");
+      Serial.print("Pressure: ");
+      Serial.print(myBME280.readFloatPressure(), 0);
+      Serial.println("Pa");
 
-      // Serial.print("Alt: ");
-      // //Serial.print(myBME280.readFloatAltitudeMeters(), 1);
-      // //Serial.println("meters");
-      // Serial.print(myBME280.readFloatAltitudeFeet(), 1);
-      // Serial.println("feet");
+      Serial.print("Alt: ");
+      //Serial.print(myBME280.readFloatAltitudeMeters(), 1);
+      //Serial.println("meters");
+      Serial.print(myBME280.readFloatAltitudeFeet(), 1);
+      Serial.println("feet");
 
-      // Serial.print("Temp: ");
-      // //Serial.print(myBME280.readTempC(), 2);
-      // //Serial.println(" degC");
-      // Serial.print(myBME280.readTempF(), 2);
-      // Serial.println(" degF");
+      Serial.print("Temp: ");
+      //Serial.print(myBME280.readTempC(), 2);
+      //Serial.println(" degC");
+      Serial.print(myBME280.readTempF(), 2);
+      Serial.println(" degF");
       // mqtt code:
-      StaticJsonDocument<256> doc;
-      doc["type"] = "combo";
-      StaticJsonDocument<256> data_doc;
-      data_doc["aqi"] = myENS.getAQI(); // units: 1-5
-      data_doc["tvoc"] = myENS.getTVOC(); // units: ppb
-      data_doc["eco2"] = myENS.getECO2(); // units: ppm
-      doc["data"] = data_doc;
-      char data_bytes[128];
-      serializeJson(doc, data_bytes);
-      mqttClient.beginMessage("combo");
-      mqttClient.print(data_bytes);
-      mqttClient.endMessage();
+      // StaticJsonDocument<256> doc;
+      // doc["type"] = "combo";
+      // StaticJsonDocument<256> data_doc;
+      // data_doc["aqi"] = myENS.getAQI(); // units: 1-5
+      // data_doc["tvoc"] = myENS.getTVOC(); // units: ppb
+      // data_doc["eco2"] = myENS.getECO2(); // units: ppm
+      // doc["data"] = data_doc;
+      // char data_bytes[128];
+      // serializeJson(doc, data_bytes);
+      // mqttClient.beginMessage("combo");
+      // mqttClient.print(data_bytes);
+      // mqttClient.endMessage();
     }
     else {
       Serial.println("Failed to read from env combo sensor");
@@ -126,51 +126,51 @@ unsigned long handleBMEData(unsigned long last_sample) {
     // Check if the BME680 sensor reading was successful
     if (adaBME.performReading()) {
       // Display temperature in degrees Celsius
-      // Serial.print("Temperature = ");
-      // Serial.print(adaBME.temperature);
-      // Serial.println(" °C");
+      Serial.print("Temperature = ");
+      Serial.print(adaBME.temperature);
+      Serial.println(" °C");
     
-      // // Display pressure in hPa (hectopascals)
-      // Serial.print("Pressure = ");
-      // Serial.print(adaBME.pressure / 100.0);
-      // Serial.println(" hPa");
+      // Display pressure in hPa (hectopascals)
+      Serial.print("Pressure = ");
+      Serial.print(adaBME.pressure / 100.0);
+      Serial.println(" hPa");
     
-      // // Display humidity in percentage
-      // Serial.print("Humidity = ");
-      // Serial.print(adaBME.humidity);
-      // Serial.println(" %");
+      // Display humidity in percentage
+      Serial.print("Humidity = ");
+      Serial.print(adaBME.humidity);
+      Serial.println(" %");
     
-      // // Calculate Dew Point
+      // Calculate Dew Point
       float dewPoint = adaBME.temperature - ((100 - adaBME.humidity) / 5);
-      // Serial.print("Dew Point = ");
-      // Serial.print(dewPoint);
-      // Serial.println(" °C");
+      Serial.print("Dew Point = ");
+      Serial.print(dewPoint);
+      Serial.println(" °C");
     
-      // // Display gas resistance in KOhms
-      // Serial.print("Gas = ");
-      // Serial.print(adaBME.gas_resistance / 1000.0);
-      // Serial.println(" KOhms");
+      // Display gas resistance in KOhms
+      Serial.print("Gas = ");
+      Serial.print(adaBME.gas_resistance / 1000.0);
+      Serial.println(" KOhms");
     
-      // // Calculate and display approximate altitude
-      // Serial.print("Approx. Altitude = ");
-      // Serial.print(adaBME.readAltitude(SEALEVELPRESSURE_HPA));
-      // Serial.println(" m");
+      // Calculate and display approximate altitude
+      Serial.print("Approx. Altitude = ");
+      Serial.print(adaBME.readAltitude(SEALEVELPRESSURE_HPA));
+      Serial.println(" m");
       // mqtt code:
-      StaticJsonDocument<256> doc;
-      doc["type"] = "bme";
-      StaticJsonDocument<256> data_doc;
-      data_doc["temp_c"] = adaBME.temperature; // units: degrees C
-      data_doc["pressure"] = adaBME.pressure / 100.0; // units: hPa
-      data_doc["humidity"] = adaBME.humidity; // units: %
-      data_doc["dew_point_c"] = dewPoint; // units: degrees C
-      data_doc["gas"] = adaBME.gas_resistance / 1000.0; // units: KOhms
-      data_doc["altitude"] = adaBME.readAltitude(SEALEVELPRESSURE_HPA); // units: m
-      doc["data"] = data_doc;
-      char data_bytes[128];
-      serializeJson(doc, data_bytes);
-      mqttClient.beginMessage("bme");
-      mqttClient.print(data_bytes);
-      mqttClient.endMessage();
+      // StaticJsonDocument<256> doc;
+      // doc["type"] = "bme";
+      // StaticJsonDocument<256> data_doc;
+      // data_doc["temp_c"] = adaBME.temperature; // units: degrees C
+      // data_doc["pressure"] = adaBME.pressure / 100.0; // units: hPa
+      // data_doc["humidity"] = adaBME.humidity; // units: %
+      // data_doc["dew_point_c"] = dewPoint; // units: degrees C
+      // data_doc["gas"] = adaBME.gas_resistance / 1000.0; // units: KOhms
+      // data_doc["altitude"] = adaBME.readAltitude(SEALEVELPRESSURE_HPA); // units: m
+      // doc["data"] = data_doc;
+      // char data_bytes[128];
+      // serializeJson(doc, data_bytes);
+      // mqttClient.beginMessage("bme");
+      // mqttClient.print(data_bytes);
+      // mqttClient.endMessage();
     }
     else {
       Serial.println("Failed to read from Adafruit BME680");
@@ -189,22 +189,22 @@ unsigned long handleLightData(unsigned long last_sample) {
     if (ltr.newDataAvailable()) {
       valid_light = ltr.readBothChannels(visible_plus_ir, infrared);
       if (valid_light) {
-        // Serial.print("CH0 Visible + IR: ");
-        // Serial.print(visible_plus_ir);
-        // Serial.print("\t\tCH1 Infrared: ");
-        // Serial.println(infrared);
+        Serial.print("CH0 Visible + IR: ");
+        Serial.print(visible_plus_ir);
+        Serial.print("\t\tCH1 Infrared: ");
+        Serial.println(infrared);
         // mqtt code:
-        StaticJsonDocument<256> doc;
-        doc["type"] = "light";
-        StaticJsonDocument<256> data_doc;
-        data_doc["visible_plus_ir"] = visible_plus_ir;
-        data_doc["ir"] = infrared;
-        doc["data"] = data_doc;
-        char data_bytes[128];
-        serializeJson(doc, data_bytes);
-        mqttClient.beginMessage("light");
-        mqttClient.print(data_bytes);
-        mqttClient.endMessage();
+        // StaticJsonDocument<256> doc;
+        // doc["type"] = "light";
+        // StaticJsonDocument<256> data_doc;
+        // data_doc["visible_plus_ir"] = visible_plus_ir;
+        // data_doc["ir"] = infrared;
+        // doc["data"] = data_doc;
+        // char data_bytes[128];
+        // serializeJson(doc, data_bytes);
+        // mqttClient.beginMessage("light");
+        // mqttClient.print(data_bytes);
+        // mqttClient.endMessage();
       }
     }
     // Print a blank line for better readability
@@ -220,39 +220,39 @@ unsigned long handleLightningData(unsigned long last_sample) {
     if(digitalRead(lightningInt) == HIGH){
       intVal = lightning.readInterruptReg();
       if(intVal == NOISE_INT){
-        // Serial.println("Noise."); 
-        // Serial.println();
+        Serial.println("Noise."); 
+        Serial.println();
         // Too much noise? Uncomment the code below, a higher number means better
         // noise rejection.
         //lightning.setNoiseLevel(noise); 
       }
       else if(intVal == DISTURBER_INT){
-        // Serial.println("Disturber."); 
-        // Serial.println();
+        Serial.println("Disturber."); 
+        Serial.println();
         // Too many disturbers? Uncomment the code below, a higher number means better
         // disturber rejection.
         //lightning.watchdogThreshold(disturber);  
       }
       else if(intVal == LIGHTNING_INT){
-        // Serial.println("Lightning Strike Detected!"); 
+        Serial.println("Lightning Strike Detected!"); 
         // Lightning! Now how far away is it? Distance estimation takes into
         // account any previously seen events in the last 15 seconds. 
         byte distance = lightning.distanceToStorm(); 
-        // Serial.print("Approximately: "); 
-        // Serial.print(distance); 
-        // Serial.println("km away!"); 
-        // Serial.println();
+        Serial.print("Approximately: "); 
+        Serial.print(distance); 
+        Serial.println("km away!"); 
+        Serial.println();
         // mqtt code:
-        StaticJsonDocument<256> doc;
-        doc["type"] = "lightning";
-        StaticJsonDocument<256> data_doc;
-        data_doc["distance"] = distance;
-        doc["data"] = data_doc;
-        char data_bytes[128];
-        serializeJson(doc, data_bytes);
-        mqttClient.beginMessage("lightning");
-        mqttClient.print(data_bytes);
-        mqttClient.endMessage();
+        // StaticJsonDocument<256> doc;
+        // doc["type"] = "lightning";
+        // StaticJsonDocument<256> data_doc;
+        // data_doc["distance"] = distance;
+        // doc["data"] = data_doc;
+        // char data_bytes[128];
+        // serializeJson(doc, data_bytes);
+        // mqttClient.beginMessage("lightning");
+        // mqttClient.print(data_bytes);
+        // mqttClient.endMessage();
       }
     }
     last_sample += 200;
@@ -261,7 +261,7 @@ unsigned long handleLightningData(unsigned long last_sample) {
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(2000);
   
   Wire.begin(21, 22);
@@ -369,18 +369,17 @@ void setup() {
   // When lightning is detected the interrupt pin goes HIGH.
   pinMode(lightningInt, INPUT); 
 
-  Serial.begin(115200); 
   Serial.println("AS3935 Franklin Lightning Detector"); 
 
   SPI.begin(); 
-
+  
   if( !lightning.beginSPI(spiCS, 2000000) ){ 
     Serial.println ("Lightning Detector did not start up, freezing!"); 
     while(1); 
   }
   else
     Serial.println("Schmow-ZoW, Lightning Detector Ready!");
-
+  while(1);
   // The lightning detector defaults to an indoor setting at 
   // the cost of less sensitivity, if you plan on using this outdoors 
   // uncomment the following line:
@@ -389,33 +388,33 @@ void setup() {
 
   /////////////////////////
   // network connections //
-  Serial.print("Attempting to connect to WPA SSID: ");
-  Serial.println(ssid);
+  // Serial.print("Attempting to connect to WPA SSID: ");
+  // Serial.println(ssid);
   
-  WiFi.begin(ssid, pass); // Connect to the Wi-Fi network
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
+  // WiFi.begin(ssid, pass); // Connect to the Wi-Fi network
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(500);
+  //   Serial.print(".");
+  // }
 
-  Serial.println("Connected to the network!");
-  Serial.println();
+  // Serial.println("Connected to the network!");
+  // Serial.println();
 
-  Serial.print("Attempting to connect to the MQTT broker: ");
-  Serial.println(broker);
+  // Serial.print("Attempting to connect to the MQTT broker: ");
+  // Serial.println(broker);
 
-  if (!mqttClient.connect(broker, port)) {
-    Serial.print("MQTT connection failed! Error code = ");
-    Serial.println(mqttClient.connectError());
+  // if (!mqttClient.connect(broker, port)) {
+  //   Serial.print("MQTT connection failed! Error code = ");
+  //   Serial.println(mqttClient.connectError());
 
-    while (1);
-  }
+  //   while (1);
+  // }
 
-  Serial.println("Connected to the MQTT broker!");
-  Serial.println();
+  // Serial.println("Connected to the MQTT broker!");
+  // Serial.println();
 
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
+  // pinMode(LED_BUILTIN, OUTPUT);
+  // digitalWrite(LED_BUILTIN, HIGH);
 
   Serial.println("done with setup");
   // delay to allow combo sensor to actually finish getting ready

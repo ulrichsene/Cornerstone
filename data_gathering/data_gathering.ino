@@ -1,5 +1,4 @@
 /*
-
 Sensors used:
 Sparkfun Environmental Combo (ENS160 / BME280)
 Adafruit BME680
@@ -60,26 +59,23 @@ unsigned long last_lightning_sample = 0;
 char ssid[] = WIFI_SSID;
 char pass[] = WIFI_PASS;
 
-const char broker[] = "test.mosquitto.org";
+const char broker[] = "35.193.89.30";
 int port = 1883;
+
+void sendMqttData(char topic[], String data) {
+  mqttClient.beginMessage(topic);
+  mqttClient.print(data);
+  mqttClient.endMessage();
+}
 
 unsigned long handleComboData(unsigned long last_sample) {
   if (last_sample + 5000 < millis()) { // change to be once every 15 seconds
     // Check if the combo sensor reading was successful
     if (myENS.checkDataStatus()) {
-      // mqtt code:
-      StaticJsonDocument<256> doc;
-      doc["type"] = "combo";
-      StaticJsonDocument<256> data_doc;
-      data_doc["aqi"] = myENS.getAQI(); // units: 1-5
-      data_doc["tvoc"] = myENS.getTVOC(); // units: ppb
-      data_doc["eco2"] = myENS.getECO2(); // units: ppm
-      doc["data"] = data_doc;
-      char data_bytes[256];
-      serializeJson(doc, data_bytes);
-      mqttClient.beginMessage("ajckl_combo");
-      mqttClient.print(data_bytes);
-      mqttClient.endMessage();
+      // send data to mqtt server
+      sendMqttData("weather/ens160/aqi", String(myENS.getAQI())); // units: 1-5
+      sendMqttData("weather/ens160/tvoc", String(myENS.getTVOC())); // units: ppb
+      sendMqttData("weather/ens160/eco2", String(myENS.getECO2())); // units: ppm
     }
     else {
       Serial.println("Failed to read from env combo sensor");
@@ -93,24 +89,19 @@ unsigned long handleBMEData(unsigned long last_sample) {
   if (last_sample + 5000 < millis()) { // change to be once every 15 seconds
     // Check if the BME680 sensor reading was successful
     if (adaBME.performReading()) {
-      // // Calculate Dew Point
+      // Calculate Dew Point
       float dewPoint = adaBME.temperature - ((100 - adaBME.humidity) / 5);
-      // mqtt code:
-      StaticJsonDocument<256> doc;
-      doc["type"] = "bme";
-      StaticJsonDocument<256> data_doc;
-      data_doc["temp_c"] = adaBME.temperature; // units: degrees C
-      data_doc["pressure"] = adaBME.pressure / 100.0; // units: hPa
-      data_doc["humidity"] = adaBME.humidity; // units: %
-      data_doc["dew_point_c"] = dewPoint; // units: degrees C
-      data_doc["gas"] = adaBME.gas_resistance / 1000.0; // units: KOhms
-      data_doc["altitude"] = adaBME.readAltitude(SEALEVELPRESSURE_HPA); // units: m
-      doc["data"] = data_doc;
-      char data_bytes[256];
-      serializeJson(doc, data_bytes);
-      mqttClient.beginMessage("ajckl_bme");
-      mqttClient.print(data_bytes);
-      mqttClient.endMessage();
+      // send data to mqtt server
+      // subtract 4 degrees C from temp reading as the sensor reading is 
+      //  quite consistently about 4 degrees higher than the actual temp
+      sendMqttData("weather/bme680/temperatureC", String(adaBME.temperature - 4.0));
+      float degrees_f = ((adaBME.temperature - 4.0) * (9.0 / 5.0)) + 32.0;
+      sendMqttData("weather/bme680/temperatureF", String(degrees_f));
+      sendMqttData("weather/bme680/pressure", String(adaBME.pressure / 100.0)); // units: hPa
+      sendMqttData("weather/bme680/humidity", String(adaBME.humidity)); // units: %
+      sendMqttData("weather/bme680/dewpoint", String(dewPoint)); // units: degrees C
+      sendMqttData("weather/bme680/gas", String(adaBME.gas_resistance / 1000.0)); // units: KOhms
+      sendMqttData("weather/bme680/altitude", String(adaBME.readAltitude(SEALEVELPRESSURE_HPA))); // units: m
     }
     else {
       Serial.println("Failed to read from Adafruit BME680");
@@ -127,18 +118,9 @@ unsigned long handleLightData(unsigned long last_sample) {
     if (ltr.newDataAvailable()) {
       valid_light = ltr.readBothChannels(visible_plus_ir, infrared);
       if (valid_light) {
-        // mqtt code:
-        StaticJsonDocument<256> doc;
-        doc["type"] = "light";
-        StaticJsonDocument<256> data_doc;
-        data_doc["visible_plus_ir"] = visible_plus_ir;
-        data_doc["ir"] = infrared;
-        doc["data"] = data_doc;
-        char data_bytes[128];
-        serializeJson(doc, data_bytes);
-        mqttClient.beginMessage("ajckl_light");
-        mqttClient.print(data_bytes);
-        mqttClient.endMessage();
+        // send data to mqtt server
+        sendMqttData("weather/light/visible_ir", String(visible_plus_ir));
+        sendMqttData("weather/light/infrared", String(infrared));
       }
     }
     last_sample += 1000;
@@ -147,38 +129,39 @@ unsigned long handleLightData(unsigned long last_sample) {
 }
 
 unsigned long handleLightningData(unsigned long last_sample) {
-  if (last_sample + 200 < millis()) {
+  if (last_sample + 250 < millis()) {
     // Hardware has alerted us to an event, now we read the interrupt register
     if(digitalRead(lightningInt) == HIGH){
       intVal = lightning.readInterruptReg();
       if(intVal == NOISE_INT){
+        Serial.println("Noise on lightning sensor");
         // Too much noise? Uncomment the code below, a higher number means better
         // noise rejection.
-        //lightning.setNoiseLevel(noise); 
+        lightning.setNoiseLevel(noise); 
+        // briefly turn off and back on the built in LED to show that the sensor is reading noise
+        digitalWrite(LED_BUILTIN, LOW);
+        delay(100);
+        digitalWrite(LED_BUILTIN, HIGH);
       }
       else if(intVal == DISTURBER_INT){
+        Serial.println("Disturber on lightning sensor");
         // Too many disturbers? Uncomment the code below, a higher number means better
         // disturber rejection.
-        //lightning.watchdogThreshold(disturber);  
+        lightning.watchdogThreshold(disturber);  
+        // briefly turn off and back on the built in LED to show that the sensor is reading distruber
+        digitalWrite(LED_BUILTIN, LOW);
+        delay(100);
+        digitalWrite(LED_BUILTIN, HIGH);
       }
       else if(intVal == LIGHTNING_INT){
         // Lightning! Now how far away is it? Distance estimation takes into
         // account any previously seen events in the last 15 seconds. 
         byte distance = lightning.distanceToStorm(); 
-        // mqtt code:
-        StaticJsonDocument<256> doc;
-        doc["type"] = "lightning";
-        StaticJsonDocument<256> data_doc;
-        data_doc["distance"] = distance;
-        doc["data"] = data_doc;
-        char data_bytes[128];
-        serializeJson(doc, data_bytes);
-        mqttClient.beginMessage("ajcklightning");
-        mqttClient.print(data_bytes);
-        mqttClient.endMessage();
+        // send data to mqtt server
+        sendMqttData("weather/lightning/distance", String(distance));
       }
     }
-    last_sample += 200;
+    last_sample += 250;
   }
   return last_sample;
 }
@@ -190,7 +173,7 @@ void setup() {
   Wire.begin(21, 22);
   //////////////////////
   // env combo sensor //
-  Serial.println("env combo test");
+  Serial.println("env combo setup");
   if (!myENS.begin()) {
     Serial.println("Did not begin.");
     while (1)
@@ -219,7 +202,7 @@ void setup() {
   // 0 - Operating ok: Standard Operation
   // 1 - Warm-up: occurs for 3 minutes after power-on.
   // 2 - Initial Start-up: Occurs for the first hour of operation.
-  //                                              and only once in sensor's lifetime.
+  //      and only once in sensor's lifetime.
   // 3 - No Valid Output
   ensStatus = myENS.getFlags();
   Serial.print("Gas Sensor Status Flag: ");
@@ -227,7 +210,7 @@ void setup() {
   
   ///////////////////
   // BME680 sensor //
-  Serial.println(F("BME680 test"));
+  Serial.println(F("BME680 setup"));
  
   // Check if the BME680 sensor is properly initialized
   if (!adaBME.begin(0x76)) {
@@ -244,7 +227,7 @@ void setup() {
 
   //////////////////
   // light sensor //
-  Serial.println("Adafruit LTR-329 advanced test");
+  Serial.println("Adafruit LTR-329 setup");
 
   if ( ! ltr.begin() ) {
     Serial.println("Couldn't find LTR sensor!");
@@ -291,24 +274,24 @@ void setup() {
   // lightning sensor //
   // When lightning is detected the interrupt pin goes HIGH.
   pinMode(lightningInt, INPUT); 
-
-  Serial.begin(115200); 
-  Serial.println("AS3935 Franklin Lightning Detector"); 
+  Serial.println("AS3935 lightning detector setup"); 
 
   SPI.begin(); 
+  pinMode(LED_BUILTIN, OUTPUT);
 
   if( !lightning.beginSPI(spiCS, 2000000) ){ 
-    Serial.println ("Lightning Detector did not start up, freezing!"); 
+    Serial.println ("Lightning detector did not start up, freezing!"); 
     while(1); 
   }
   else
-    Serial.println("Schmow-ZoW, Lightning Detector Ready!");
-
+    Serial.println("Lightning detector ready!");
+  // not sure why but the above if statement turns on the built in LED, so we turn it back off afterwards
+  delay(100);
+  digitalWrite(LED_BUILTIN, LOW);
   // The lightning detector defaults to an indoor setting at 
-  // the cost of less sensitivity, if you plan on using this outdoors 
+  // the cost of less sensitivity, when using the system outdoors 
   // uncomment the following line:
   //lightning.setIndoorOutdoor(OUTDOOR); 
-
 
   /////////////////////////
   // network connections //
@@ -326,7 +309,6 @@ void setup() {
 
   Serial.print("Attempting to connect to the MQTT broker: ");
   Serial.println(broker);
-
   if (!mqttClient.connect(broker, port)) {
     Serial.print("MQTT connection failed! Error code = ");
     Serial.println(mqttClient.connectError());
@@ -336,13 +318,16 @@ void setup() {
 
   Serial.println("Connected to the MQTT broker!");
   Serial.println();
-
-  pinMode(LED_BUILTIN, OUTPUT);
+  // turn on LED to show visually that the system has finished setup
   digitalWrite(LED_BUILTIN, HIGH);
 
+  // set initial data read times to be when the setup is finished
+  unsigned long start_time = millis();
+  last_combo_sample = start_time;
+  last_bme_sample = start_time;
+  last_light_sample = start_time;
+  last_lightning_sample = start_time;
   Serial.println("done with setup");
-  // delay to allow combo sensor to actually finish getting ready
-  delay(500);
 }
 
 void loop() {
@@ -357,5 +342,4 @@ void loop() {
 
   // lightning sensor
   last_lightning_sample = handleLightningData(last_lightning_sample);
- 
 }
