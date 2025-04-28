@@ -8,9 +8,9 @@ import pytz
 # InfluxDB connection parameters
 INFLUXDB_HOST = 'localhost'
 INFLUXDB_PORT = 8086
-INFLUXDB_USER = 'eulrichsen'
-INFLUXDB_PASSWORD = 'weatherwizards341'
-INFLUXDB_DATABASE = 'weather_data'
+INFLUXDB_USER = 'user'
+INFLUXDB_PASSWORD = 'secret'
+INFLUXDB_DATABASE = 'weather'
 
 # HTML output file
 HTML_OUTPUT = '/var/www/html/index.html'
