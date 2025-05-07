@@ -1,7 +1,7 @@
 # Cornerstone
 IOT Weather Station
 
-To access Weather Station Website, please visit http://35.193.89.30
+To access Weather Station Website, please visit http://34.30.198.245
 
 ## SSH Server
 ```sh
