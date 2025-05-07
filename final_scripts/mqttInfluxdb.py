@@ -12,9 +12,9 @@ from influxdb import InfluxDBClient
 # MQTT Configuration
 MQTT_BROKER = "35.193.89.30"
 MQTT_PORT = 1883
-MQTT_USERNAME = "weather_user"
-MQTT_PASSWORD = "WeatherWizards"
-MQTT_CLIENT_ID = "weather_to_influxdb_bridge"
+MQTT_USERNAME = "user"
+MQTT_PASSWORD = "secret"
+MQTT_CLIENT_ID = "bridge"
 
 # Topics to subscribe to
 WEATHER_TOPIC = "weather/#"  # Wildcard to subscribe to all weather topics
@@ -22,9 +22,9 @@ WEATHER_TOPIC = "weather/#"  # Wildcard to subscribe to all weather topics
 # InfluxDB Configuration
 INFLUXDB_HOST = "localhost"
 INFLUXDB_PORT = 8086
-INFLUXDB_USER = "eulrichsen"
-INFLUXDB_PASSWORD = "weatherwizards341"
-INFLUXDB_DATABASE = "weather_data"
+INFLUXDB_USER = "user"
+INFLUXDB_PASSWORD = "secret"
+INFLUXDB_DATABASE = "weather"
 
 # Mapping of topics to measurements
 TOPIC_MAPPING = {
